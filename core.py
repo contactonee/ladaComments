@@ -1,23 +1,27 @@
 import urllib
 from HTMLParser import HTMLParser
 
+comments = []
 
 class MyHTMLParser(HTMLParser):
     inside = []
+    inComment = 0
     def handle_starttag(self, tag, attrs):
         attr = {}
         for val in attrs:
             attr[val[0]] = val[1]
-        if len(attrs) > 0 or tag == 'b':
-            self.inside.append((tag, attr))
+        self.inside.append((tag, attr))
+        if tag == 'div' and 'class' in attr and attr['class'] == 'comment-text':
+            self.inComment = 1
+            comments.append("")
     def handle_data(self, data):
       if len(self.inside) > 0:
-        if 'id' in self.inside[-1][1] and self.inside[-1][1]['id'][0:7] == 'comm-id':
-            print data.replace("*", "")
+        if self.inComment:
+            comments[-1] += data.replace("*", "")
     def handle_endtag(self, tag):
         if len(self.inside) > 0:
-            if 'id' in self.inside[-1][1] and self.inside[-1][1]['id'][0:7] == 'comm-id':
-                print "------------------------------------"
+            if self.inside[-1][0] == 'div' and 'class' in self.inside[-1][1] and self.inside[-1][1]['class'] == 'comment-text':
+                self.inComment = 0
             self.inside.pop()
 
 
@@ -25,3 +29,5 @@ class MyHTMLParser(HTMLParser):
 parser = MyHTMLParser()
 res = urllib.urlopen("https://www.lada.kz/index.php?do=lastcomments").read().decode("utf-8").replace("--!>", "-->")
 parser.feed(res)
+for text in comments:
+    print text, "\n\n"
