@@ -30,4 +30,4 @@ parser = MyHTMLParser()
 res = urllib.urlopen("https://www.lada.kz/index.php?do=lastcomments").read().decode("utf-8").replace("--!>", "-->")
 parser.feed(res)
 for text in comments:
-    print text, "\n\n"
+    print text.encode("utf-8"), "\n\n"
