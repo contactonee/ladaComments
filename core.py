@@ -1,7 +1,9 @@
 import urllib
 from HTMLParser import HTMLParser
+import time
 
 comments = []
+lastComments = []
 
 class MyHTMLParser(HTMLParser):
     inside = []
@@ -38,5 +40,35 @@ class MyHTMLParser(HTMLParser):
 
 
 parser = MyHTMLParser()
-res = urllib.urlopen("https://www.lada.kz/index.php?do=lastcomments").read().decode("utf-8").replace("--!>", "-->")
-parser.feed(res)
+
+while 1:
+    print "\n\n\n\nCooldown..."
+    time.sleep(5)
+    print "Loading webpage..."
+    try:
+        res = urllib.urlopen("https://www.lada.kz/index.php?do=lastcomments").read().decode("utf-8").replace("--!>", "-->")
+    except Exception:
+        print "Check your connection to the Internet"
+        continue
+    f = open("log.txt", "a")
+
+
+    print "Parsing..."
+    comments = []
+    parser.feed(res)
+
+    if len(lastComments) == 0:
+        pos = len(comments) - 1
+    else:
+        for i in range(0, len(comments)):
+            if comments[i]['id'] <= lastComments[0]['id']:
+                pos = i - 1
+                break
+    print "New comments at pos: " + str(pos)
+    if pos >= 0:
+        for i in range(pos, -1, -1):
+            print comments[i]['text'].encode("utf-8") + "\n\n"
+    lastComments = comments
+    print "Current top: " + comments[0]['text'].encode("utf-8")
+    print "Last top: " + lastComments[0]['text'].encode("utf-8")
+    f.close()
